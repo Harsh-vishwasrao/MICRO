@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { GoogleLogin } from '@react-oauth/google'
+import { jwtDecode } from 'jwt-decode'
 
 const CATEGORIES = [
   { icon: "✦", label: "Design & Creative", color: "#8b5cf6" },
@@ -703,18 +705,32 @@ function FreelancersPage({ setBig }) {
 function AuthPage({ mode, navTo }) {
   const [form, setForm] = useState({ name:"", email:"", password:"" });
   const [done, setDone] = useState(false);
+  const [user, setUser] = useState(null);
   const isSignup = mode === "signup";
+
+  const handleGoogleSuccess = (credentialResponse) => {
+    const decoded = jwtDecode(credentialResponse.credential);
+    setUser(decoded);
+    setDone(true);
+  };
 
   if (done) return (
     <div style={{ minHeight:"80vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"24px" }}>
       <div style={{ textAlign:"center" }}>
         <div style={{ fontSize:52,marginBottom:14 }}>🎉</div>
+        {user?.picture && (
+          <img src={user.picture} alt="avatar"
+            style={{ width:64,height:64,borderRadius:"50%",marginBottom:14,border:"3px solid #6366f1" }} />
+        )}
         <h2 style={{ fontSize:22,fontWeight:800,margin:"0 0 8px" }}>
-          {isSignup?"Welcome to Freel!":"Welcome back!"}
+          Welcome, {user?.name || "there"}!
         </h2>
-        <p style={{ color:"#6b7280",marginBottom:22,fontSize:14 }}>You're now signed {isSignup?"up":"in"}.</p>
-        <button onClick={()=>navTo("home")} style={{ background:"#111827",color:"#fff",border:"none",borderRadius:10,
-          padding:"11px 24px",cursor:"none",fontFamily:"inherit",fontWeight:800,fontSize:14 }}>Go to Home →</button>
+        <p style={{ color:"#6b7280",marginBottom:22,fontSize:14 }}>You're now signed in.</p>
+        <button onClick={()=>navTo("home")}
+          style={{ background:"#111827",color:"#fff",border:"none",borderRadius:10,
+            padding:"11px 24px",cursor:"none",fontFamily:"inherit",fontWeight:800,fontSize:14 }}>
+          Go to Home →
+        </button>
       </div>
     </div>
   );
@@ -722,47 +738,80 @@ function AuthPage({ mode, navTo }) {
   return (
     <div style={{ minHeight:"85vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"24px" }}>
       <div style={{ width:"100%",maxWidth:420 }}>
-        <button onClick={()=>navTo("home")} style={{ background:"none",border:"none",cursor:"none",
-          color:"#6b7280",fontFamily:"inherit",fontSize:13,marginBottom:20,display:"block" }}>← Back to Home</button>
-        <div style={{ background:"#fff",border:"1px solid #e5e7eb",borderRadius:20,padding:"32px 28px",
-          boxShadow:"0 8px 40px rgba(0,0,0,0.06)" }}>
+        <button onClick={()=>navTo("home")}
+          style={{ background:"none",border:"none",cursor:"none",color:"#6b7280",
+            fontFamily:"inherit",fontSize:13,marginBottom:20,display:"block" }}>
+          ← Back to Home
+        </button>
+        <div style={{ background:"#fff",border:"1px solid #e5e7eb",borderRadius:20,
+          padding:"32px 28px",boxShadow:"0 8px 40px rgba(0,0,0,0.06)" }}>
           <div style={{ textAlign:"center",marginBottom:24 }}>
-            <div style={{ fontSize:16,fontWeight:800,marginBottom:6 }}>◆ Freel</div>
-            <h2 style={{ fontSize:20,fontWeight:800,letterSpacing:"-0.3px",margin:"0 0 5px" }}>
-              {isSignup?"Create your account":"Sign in to Freel"}
+            <div style={{ fontSize:16,fontWeight:800,marginBottom:6 }}>◆ Freelr</div>
+            <h2 style={{ fontSize:20,fontWeight:800,margin:"0 0 5px" }}>
+              {isSignup?"Create your account":"Sign in to Freelr"}
             </h2>
             <p style={{ color:"#6b7280",fontSize:13,margin:0 }}>
               {isSignup?"Start hiring or earning in minutes.":"Good to have you back."}
             </p>
           </div>
+
+          {/* Google Login Button */}
+          <div style={{ marginBottom:16,display:"flex",justifyContent:"center" }}>
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={()=>console.log("Google login failed")}
+              width="360"
+              theme="outline"
+              size="large"
+              text={isSignup?"signup_with":"signin_with"}
+              shape="rectangular"
+            />
+          </div>
+
+          {/* Divider */}
+          <div style={{ display:"flex",alignItems:"center",gap:12,marginBottom:16 }}>
+            <div style={{ flex:1,height:1,background:"#e5e7eb" }} />
+            <span style={{ fontSize:12,color:"#9ca3af",fontWeight:500 }}>or continue with email</span>
+            <div style={{ flex:1,height:1,background:"#e5e7eb" }} />
+          </div>
+
+          {/* Email form */}
           <div style={{ display:"flex",flexDirection:"column",gap:13 }}>
             {isSignup&&(
               <div>
                 <label style={{ fontSize:12,fontWeight:600,color:"#374151",display:"block",marginBottom:4 }}>Full Name</label>
-                <input value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Jane Smith"
-                  style={{ width:"100%",border:"1.5px solid #e5e7eb",borderRadius:9,padding:"9px 12px",fontFamily:"inherit",fontSize:13,outline:"none",boxSizing:"border-box",cursor:"none" }} />
+                <input value={form.name} onChange={e=>setForm({...form,name:e.target.value})}
+                  placeholder="Jane Smith"
+                  style={{ width:"100%",border:"1.5px solid #e5e7eb",borderRadius:9,padding:"9px 12px",
+                    fontFamily:"inherit",fontSize:13,outline:"none",boxSizing:"border-box",cursor:"none" }} />
               </div>
             )}
             <div>
               <label style={{ fontSize:12,fontWeight:600,color:"#374151",display:"block",marginBottom:4 }}>Email</label>
-              <input type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} placeholder="jane@example.com"
-                style={{ width:"100%",border:"1.5px solid #e5e7eb",borderRadius:9,padding:"9px 12px",fontFamily:"inherit",fontSize:13,outline:"none",boxSizing:"border-box",cursor:"none" }} />
+              <input type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})}
+                placeholder="jane@example.com"
+                style={{ width:"100%",border:"1.5px solid #e5e7eb",borderRadius:9,padding:"9px 12px",
+                  fontFamily:"inherit",fontSize:13,outline:"none",boxSizing:"border-box",cursor:"none" }} />
             </div>
             <div>
               <label style={{ fontSize:12,fontWeight:600,color:"#374151",display:"block",marginBottom:4 }}>Password</label>
-              <input type="password" value={form.password} onChange={e=>setForm({...form,password:e.target.value})} placeholder="••••••••"
-                style={{ width:"100%",border:"1.5px solid #e5e7eb",borderRadius:9,padding:"9px 12px",fontFamily:"inherit",fontSize:13,outline:"none",boxSizing:"border-box",cursor:"none" }} />
+              <input type="password" value={form.password} onChange={e=>setForm({...form,password:e.target.value})}
+                placeholder="••••••••"
+                style={{ width:"100%",border:"1.5px solid #e5e7eb",borderRadius:9,padding:"9px 12px",
+                  fontFamily:"inherit",fontSize:13,outline:"none",boxSizing:"border-box",cursor:"none" }} />
             </div>
             <button onClick={()=>setDone(true)}
-              style={{ background:"#111827",color:"#fff",border:"none",borderRadius:10,padding:"12px 0",
-                cursor:"none",fontFamily:"inherit",fontWeight:800,fontSize:14,marginTop:4 }}>
+              style={{ background:"#111827",color:"#fff",border:"none",borderRadius:10,
+                padding:"12px 0",cursor:"none",fontFamily:"inherit",fontWeight:800,fontSize:14,marginTop:4 }}>
               {isSignup?"Create Account →":"Sign In →"}
             </button>
           </div>
+
           <div style={{ textAlign:"center",marginTop:16,fontSize:13,color:"#6b7280" }}>
             {isSignup?"Already have an account? ":"Don't have an account? "}
             <button onClick={()=>navTo(isSignup?"signin":"signup")}
-              style={{ background:"none",border:"none",cursor:"none",color:"#6366f1",fontWeight:600,fontSize:13,fontFamily:"inherit" }}>
+              style={{ background:"none",border:"none",cursor:"none",color:"#6366f1",
+                fontWeight:600,fontSize:13,fontFamily:"inherit" }}>
               {isSignup?"Sign In":"Sign Up"}
             </button>
           </div>
@@ -771,7 +820,6 @@ function AuthPage({ mode, navTo }) {
     </div>
   );
 }
-
 /* ── POST PROJECT PAGE ── */
 function PostProjectPage({ navTo }) {
   const [step, setStep] = useState(1);
