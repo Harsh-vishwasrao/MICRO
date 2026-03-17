@@ -714,6 +714,20 @@ function AuthPage({ mode, navTo }) {
     setDone(true);
   };
 
+   useEffect(() => {
+    if (window.google) {
+      google.accounts.id.initialize({
+        client_id: "YOUR_CLIENT_ID",
+        callback: handleGoogleSuccess,
+      });
+      google.accounts.id.renderButton(
+        document.getElementById("googleSignInButton"),
+        { theme: "outline", size: "large" }
+      );
+    }
+   }, []);
+
+
   if (done) return (
     <div style={{ minHeight:"80vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"24px" }}>
       <div style={{ textAlign:"center" }}>
