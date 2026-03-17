@@ -770,24 +770,28 @@ function AuthPage({ mode, navTo }) {
           </div>
 
           {/* Google Login Button */}
-          <div style={{ marginBottom:16,display:"flex",justifyContent:"center" }}>
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={()=>console.log("Google login failed")}
-              width="360"
-              theme="outline"
-              size="large"
-              text={isSignup?"signup_with":"signin_with"}
-              shape="rectangular"
-            />
-          </div>
+          <div style={{ marginBottom:16, display:"flex", justifyContent:"center" }}>
+          <GoogleLogin
+            onSuccess={(credentialResponse) => {
+      const decoded = JSON.parse(atob(credentialResponse.credential.split('.')[1]));
+      setUser(decoded);
+      setDone(true);
+    }}
+    onError={()=>console.log("Google login failed")}
+    width="360"
+    theme="outline"
+    size="large"
+    text={isSignup?"signup_with":"signin_with"}
+    shape="rectangular"
+  />
+</div>
 
-          {/* Divider */}
-          <div style={{ display:"flex",alignItems:"center",gap:12,marginBottom:16 }}>
-            <div style={{ flex:1,height:1,background:"#e5e7eb" }} />
-            <span style={{ fontSize:12,color:"#9ca3af",fontWeight:500 }}>or continue with email</span>
-            <div style={{ flex:1,height:1,background:"#e5e7eb" }} />
-          </div>
+{/* Divider */}
+<div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
+  <div style={{ flex:1, height:1, background:"#e5e7eb" }} />
+  <span style={{ fontSize:12, color:"#9ca3af" }}>or continue with email</span>
+  <div style={{ flex:1, height:1, background:"#e5e7eb" }} />
+</div>
 
           {/* Email form */}
           <div style={{ display:"flex",flexDirection:"column",gap:13 }}>
